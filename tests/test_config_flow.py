@@ -133,7 +133,7 @@ async def test_options_flow_stores_user_facing_settings(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            CONF_PREFERRED_WAKE_SOURCE: "Opt",
+            CONF_PREFERRED_WAKE_SOURCE: "opt",
             CONF_MAX_VOLUME: 0.4,
             CONF_VOLUME_STEP: 0.04,
             CONF_INVERSE_ORIENTATION: True,
@@ -143,7 +143,7 @@ async def test_options_flow_stores_user_facing_settings(
 
     assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
     assert entry.options == {
-        CONF_PREFERRED_WAKE_SOURCE: "Opt",
+        CONF_PREFERRED_WAKE_SOURCE: "opt",
         CONF_MAX_VOLUME: 0.4,
         CONF_VOLUME_STEP: 0.04,
         CONF_INVERSE_ORIENTATION: True,

@@ -91,10 +91,10 @@
     },
     "wake_source": {
       "options": {
-        "Aux": "Auxiliary",
-        "Bluetooth": "Bluetooth",
-        "Opt": "Optical",
-        "Wifi": "Wi-Fi"
+        "aux": "Auxiliary",
+        "bluetooth": "Bluetooth",
+        "opt": "Optical",
+        "wifi": "Wi-Fi"
       }
     }
   },
