@@ -28,10 +28,16 @@ async def test_user_can_create_entry_with_normalized_endpoint(
     enable_custom_integrations: None,
 ) -> None:
     """A reachable speaker creates one normalized config entry."""
-    with patch(
-        "custom_components.kef_lsx.config_flow._async_validate_endpoint",
-        new=AsyncMock(),
-    ) as validate:
+    with (
+        patch(
+            "custom_components.kef_lsx.config_flow._async_validate_endpoint",
+            new=AsyncMock(),
+        ) as validate,
+        patch(
+            "custom_components.kef_lsx.async_setup_entry",
+            new=AsyncMock(return_value=True),
+        ) as setup_entry,
+    ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
@@ -39,6 +45,7 @@ async def test_user_can_create_entry_with_normalized_endpoint(
             result["flow_id"],
             user_input={CONF_HOST: "  SPEAKER.Local. ", CONF_PORT: DEFAULT_PORT},
         )
+        await hass.async_block_till_done()
 
     assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["title"] == "speaker.local"
@@ -46,7 +53,10 @@ async def test_user_can_create_entry_with_normalized_endpoint(
         CONF_HOST: "speaker.local",
         CONF_PORT: DEFAULT_PORT,
     }
+    assert result["result"].unique_id
+    assert result["result"].unique_id != "speaker.local"
     validate.assert_awaited_once_with("speaker.local", DEFAULT_PORT)
+    setup_entry.assert_awaited_once()
 
 
 async def test_user_flow_rejects_invalid_host_without_network_access(
@@ -178,10 +188,17 @@ async def test_reconfigure_validates_and_updates_changed_endpoint(
     entry.add_to_hass(hass)
     changed = {CONF_HOST: "new-speaker.local", CONF_PORT: 50002}
 
-    with patch(
-        "custom_components.kef_lsx.config_flow._async_validate_endpoint",
-        new=AsyncMock(),
-    ) as validate:
+    with (
+        patch(
+            "custom_components.kef_lsx.config_flow._async_validate_endpoint",
+            new=AsyncMock(),
+        ) as validate,
+        patch.object(
+            hass.config_entries,
+            "async_reload",
+            new=AsyncMock(return_value=True),
+        ) as reload_entry,
+    ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={
@@ -190,9 +207,11 @@ async def test_reconfigure_validates_and_updates_changed_endpoint(
             },
             data=changed,
         )
+        await hass.async_block_till_done()
 
     assert result["type"] is data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     assert entry.data == changed
     assert entry.title == "new-speaker.local"
     validate.assert_awaited_once_with("new-speaker.local", 50002)
+    reload_entry.assert_awaited_once_with(entry.entry_id)

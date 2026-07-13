@@ -146,12 +146,14 @@ source (`Opt` default), maximum volume (0.5), volume step (0.05), inverse
 orientation, and standby encoding (`None` default). Poll/retry/timeout/hysteresis
 knobs are intentionally not user-facing.
 
-The legacy protocol exposes no confirmed immutable serial/MAC query. Following
-current HA rules, the integration does not misuse IP/hostname as a physical
-`ConfigEntry.unique_id`. Duplicate prevention matches normalized host+port;
-stable entity/device identifiers derive from HA's stable config `entry_id`.
-This is a documented limitation, not a fabricated identity. Reconfigure checks
-duplicates before I/O and skips probing an unchanged endpoint.
+The legacy protocol exposes no confirmed immutable serial/MAC query. The flow
+therefore assigns a random installation UUID as the `ConfigEntry.unique_id` and
+never misuses IP/hostname as identity. It remains stable across reconfigure and
+drives entity/device identifiers; removing and re-adding the same physical
+speaker creates a new identity. Duplicate prevention separately matches the
+normalized host+port. This limitation is preferable to fabricating hardware
+identity. Reconfigure checks duplicates before I/O and skips probing an
+unchanged endpoint.
 
 The primary `MediaPlayerEntity` exposes standard feature flags only for the MVP.
 An enabled diagnostic communication-status sensor reports healthy/degraded/
@@ -245,4 +247,3 @@ review and again after fixes.
 - Translations: current custom-integration runtime rules take precedence;
   validator output decides whether a redundant `strings.json` ships.
 - Scope: no DSP or unverified transport controls in the MVP.
-

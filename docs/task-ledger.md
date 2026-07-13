@@ -6,7 +6,7 @@ work is inspected and integrated.
 
 | Agent / task | Branch or worktree | Owned files | Dependencies | Status | Verification |
 |---|---|---|---|---|---|
-| Lead / orchestration and integration | `feat/initial-integration` (shared worktree) | cross-cutting integration, ledger, final plan | all workstreams | in progress | pending |
+| Lead / orchestration and integration | `feat/initial-integration` (shared worktree) | cross-cutting integration, ledger, final plan | all workstreams | in progress | integrated every result; full local suite and CI pending final push |
 | Research 1 / legacy protocol and aiokef audit | shared worktree, strict ownership | `docs/research/legacy-protocol-aiokef.md` | none | complete | agent self-check; lead read full report; `git diff --check` |
 | Research 2 / current HA and HACS architecture | shared worktree, strict ownership | `docs/research/ha-hacs-architecture.md` | none | complete | agent self-check; lead read full report; `git diff --check` |
 | Research 3 / reliability and concurrency design | shared worktree, strict ownership | `docs/research/reliability-concurrency.md` | none | complete | agent self-check; lead read full report; `git diff --check` |
@@ -18,7 +18,9 @@ work is inspected and integrated.
 | Implementation A / protocol client and tests | shared worktree, strict ownership | protocol/client files and focused tests listed in `docs/implementation-plan.md` | fake server | complete | 88 portable fake/protocol/client tests; typed write-attempt review fix; Ruff/format/mypy clean; lead code review |
 | Implementation B / fake TCP server | shared worktree, strict ownership | fake-server files listed in plan | protocol research | complete | lead found/fixed dropped-reply tracking; 17 portable TCP tests passed; Ruff clean |
 | Implementation C / HA setup and config | shared worktree, strict ownership | setup/config files listed in plan | controller contract | complete | 11 HA tests passed under WSL; Ruff/format/compile/JSON clean; lead contract review |
-| Implementation D / runtime and entities | shared worktree, strict ownership | runtime/entity files listed in plan | A, B, C | queued | pending |
-| Implementation E / packaging, CI, docs | shared worktree, strict ownership | packaging/docs files listed in plan plus `uv.lock` | approved plan; D feature list | initial pass complete | Python 3.14.2 lock resolved; TOML/JSON/YAML/diff/sensitive scans; lead content review; final feature matrix pending D |
-
-Final-review rows will be added after implementation.
+| Implementation D / runtime and entities | shared worktree, strict ownership | runtime/entity files listed in plan | A, B, C | complete | 19 focused runtime/entity tests; forced-cancel, event-loop heartbeat, direct-wake and hysteresis scenarios; Ruff/mypy clean; lead review |
+| Implementation E / packaging, CI, docs | shared worktree, strict ownership | packaging/docs files listed in plan plus `uv.lock` | approved plan; D feature list | complete | feature matrix finalized; HACS brand asset added; TOML/JSON/YAML/diff/sensitive scans; lead review |
+| Final specification review | read-only review | whole working tree | implementation A-E | complete after fixes | verification ownership, shutdown cleanup, off-state traffic and queue-rejection regression re-reviewed |
+| Final async/concurrency review | read-only review | client/runtime scheduler | implementation A-D | complete after fixes | ambiguous-write verification, deadline propagation, supersession, priority and maintenance re-reviewed |
+| Final HA/HACS review | read-only review | HA surface and packaging | implementation C-E | complete after fixes | config identity, translated service errors, manifest/translations and HACS prerequisites re-reviewed |
+| Final protocol/test review | read-only review | protocol, fake and tests | implementation A, B, D | complete after fixes | reset recovery, forced cancellation and event-loop heartbeat added; framing/encoding passed |

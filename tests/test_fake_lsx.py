@@ -25,6 +25,8 @@ from fake_lsx import (
     get_reply,
 )
 
+pytestmark = pytest.mark.usefixtures("socket_enabled")
+
 
 async def test_incremental_get_request_receives_state_reply() -> None:
     """The fake buffers a fragmented GET request and replies on real TCP."""

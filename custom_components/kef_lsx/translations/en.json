@@ -57,6 +57,30 @@
       }
     }
   },
+  "entity": {
+    "sensor": {
+      "communication_status": {
+        "name": "Communication status"
+      },
+      "consecutive_failures": {
+        "name": "Consecutive failures"
+      },
+      "last_command_result": {
+        "name": "Last command result"
+      },
+      "last_successful_communication": {
+        "name": "Last successful communication"
+      }
+    }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "The KEF LSX command failed: {error}"
+    },
+    "unsupported_source": {
+      "message": "{source} is not a supported KEF LSX source."
+    }
+  },
   "selector": {
     "standby_time": {
       "options": {

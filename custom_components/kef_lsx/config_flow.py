@@ -7,12 +7,12 @@ import logging
 import re
 from contextlib import suppress
 from typing import Any
+from uuid import uuid4
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
@@ -184,13 +184,13 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle the initial user step."""
         return await self._async_step_endpoint("user", user_input)
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle endpoint reconfiguration."""
         entry = self._get_reconfigure_entry()
         if user_input is None:
@@ -211,7 +211,7 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         step_id: str,
         user_input: dict[str, Any] | None,
         entry: config_entries.ConfigEntry | None = None,
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Validate and store one endpoint step."""
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -239,6 +239,7 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["base"] = "unknown"
                 else:
                     if entry is None:
+                        await self.async_set_unique_id(str(uuid4()))
                         return self.async_create_entry(title=host, data=endpoint)
                     return self.async_update_reload_and_abort(
                         entry,
@@ -262,7 +263,7 @@ class KefLsxOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Manage KEF LSX options."""
         if user_input is not None:
             options = dict(user_input)

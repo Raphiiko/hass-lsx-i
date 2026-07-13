@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 import pytest
 from fake_lsx import (
+    AbortConnection,
     CloseGracefully,
     CombinedReply,
     DropReply,
@@ -200,6 +201,21 @@ async def test_connection_refusal_can_recover_on_the_next_operation() -> None:
     assert (await client.async_get_source()).source is Source.OPT
     await client.async_close()
     await speaker.close()
+    speaker.assert_clean()
+
+
+async def test_connection_reset_can_recover_on_the_next_operation() -> None:
+    """An aborted exchange cannot poison the next operation."""
+    async with FakeLsxServer(
+        [Step(b"G0\x80", AbortConnection()), Step(b"G0\x80")]
+    ) as speaker:
+        client = LsxClient(speaker.host, speaker.port)
+        with pytest.raises(ConnectionLostError):
+            await client.async_get_source()
+
+        assert (await client.async_get_source()).source is Source.OPT
+        await client.async_close()
+
     speaker.assert_clean()
 
 

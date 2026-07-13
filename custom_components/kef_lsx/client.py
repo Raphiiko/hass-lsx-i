@@ -73,10 +73,12 @@ class LsxClient:
         except ValueError as err:
             raise MalformedResponseError(str(err), write_attempted=True) from err
 
-    async def async_get_volume(self) -> VolumeStatus:
+    async def async_get_volume(self, *, deadline: float | None = None) -> VolumeStatus:
         """Read and decode absolute volume and mute state."""
         frame = await self._async_exchange(
-            encode_get(VOLUME_REGISTER), expected_register=VOLUME_REGISTER
+            encode_get(VOLUME_REGISTER),
+            expected_register=VOLUME_REGISTER,
+            deadline=deadline,
         )
         if not isinstance(frame, GetFrame):
             raise MalformedResponseError(
@@ -94,17 +96,23 @@ class LsxClient:
         standby: int | None,
         inverse: bool,
         power_on: bool,
+        deadline: float | None = None,
     ) -> None:
         """Send one absolute source/power command."""
         await self._async_exchange(
             encode_set_source(source, standby, inverse, power_on),
             expected_register=None,
+            deadline=deadline,
         )
 
-    async def async_set_volume(self, volume: int, *, muted: bool) -> None:
+    async def async_set_volume(
+        self, volume: int, *, muted: bool, deadline: float | None = None
+    ) -> None:
         """Send one absolute volume/mute command."""
         await self._async_exchange(
-            encode_set_volume(volume, muted=muted), expected_register=None
+            encode_set_volume(volume, muted=muted),
+            expected_register=None,
+            deadline=deadline,
         )
 
     async def async_close(self) -> None:
@@ -118,7 +126,11 @@ class LsxClient:
                 await self._async_close_writer(writer)
 
     async def _async_exchange(
-        self, request: bytes, *, expected_register: int | None
+        self,
+        request: bytes,
+        *,
+        expected_register: int | None,
+        deadline: float | None = None,
     ) -> GetFrame | None:
         """Execute one bounded request/reply exchange without retries."""
         async with self._exchange_lock:
@@ -129,6 +141,8 @@ class LsxClient:
             exchange_deadline = (
                 loop.time() + self._connect_timeout + self._response_timeout
             )
+            if deadline is not None:
+                exchange_deadline = min(exchange_deadline, deadline)
             write_attempted = False
             reader: asyncio.StreamReader
             writer: asyncio.StreamWriter | None = None

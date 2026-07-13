@@ -33,13 +33,13 @@ prerequisite read.
 
 | Capability | Prerelease implementation | Fake-server tested | Real LSX tested |
 |---|---:|---:|---:|
-| Power on with direct preferred-source SET | Yes | Planned/release-blocking | No |
-| Power off | Yes | Planned/release-blocking | No |
-| Source read/select: Wifi, Bluetooth, Aux, Opt | Yes | Planned/release-blocking | No |
-| Absolute volume and configurable volume step | Yes | Planned/release-blocking | No |
-| Mute/unmute | Yes | Planned/release-blocking | No |
-| Transient-failure availability hysteresis | Yes | Planned/release-blocking | No |
-| Communication diagnostics | Yes | Planned/release-blocking | No |
+| Power on with direct preferred-source SET | Yes | Yes | No |
+| Power off | Yes | Yes | No |
+| Source read/select: Wifi, Bluetooth, Aux, Opt | Yes | Yes | No |
+| Absolute volume and configurable volume step | Yes | Yes | No |
+| Mute/unmute | Yes | Yes | No |
+| Transient-failure availability hysteresis | Yes | Yes | No |
+| Communication diagnostics | Yes | Yes | No |
 | Play/pause and track navigation | Deferred | No | No |
 | DSP/EQ controls | Deferred | No | No |
 | LS50 Wireless generation 1 | Not claimed | No | No |
