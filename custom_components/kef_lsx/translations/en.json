@@ -1,0 +1,106 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "This speaker endpoint is already configured.",
+      "reconfigure_successful": "The speaker endpoint was updated."
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the speaker. Check the host and make sure no other integration is using it.",
+      "invalid_host": "Enter a valid IP address or hostname.",
+      "unknown": "Unexpected error. Check the logs for details."
+    },
+    "step": {
+      "reconfigure": {
+        "data": {
+          "host": "Host",
+          "name": "Name",
+          "port": "Port"
+        },
+        "data_description": {
+          "host": "IP address or hostname of the first-generation KEF LSX speaker.",
+          "name": "Friendly name for this speaker. Duplicate names receive a numeric suffix.",
+          "port": "Legacy TCP control port. The default is 50001."
+        },
+        "description": "Update the local speaker endpoint. Do not run this integration and the built-in KEF integration against the same speaker.",
+        "title": "Reconfigure KEF LSX"
+      },
+      "user": {
+        "data": {
+          "host": "Host",
+          "name": "Name",
+          "port": "Port"
+        },
+        "data_description": {
+          "host": "IP address or hostname of the first-generation KEF LSX speaker.",
+          "name": "Friendly name for this speaker. The default is KEF LSX.",
+          "port": "Legacy TCP control port. The default is 50001."
+        },
+        "description": "Connect through the local legacy protocol. Stop the built-in KEF integration before continuing.",
+        "title": "Add KEF LSX"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "inverse_orientation": "Inverse speaker orientation",
+          "maximum_volume": "Maximum volume",
+          "preferred_wake_source": "Preferred wake source",
+          "standby_time": "Automatic standby",
+          "volume_step": "Volume step"
+        },
+        "data_description": {
+          "inverse_orientation": "Enable when the powered speaker is configured as the right channel.",
+          "maximum_volume": "Highest volume Home Assistant may request, from 1% to 100%.",
+          "preferred_wake_source": "Optional source override sent directly when turning on. If omitted, the last known source is used, falling back to Optical when no source is known.",
+          "standby_time": "Standby value encoded in source commands. Never is recommended for reliable local wake.",
+          "volume_step": "Percentage-point change applied by volume up and volume down."
+        },
+        "title": "KEF LSX options"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "communication_status": {
+        "name": "Communication status"
+      },
+      "consecutive_failures": {
+        "name": "Consecutive failures"
+      },
+      "last_command_result": {
+        "name": "Last command result"
+      },
+      "last_successful_communication": {
+        "name": "Last successful communication"
+      }
+    }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "The KEF LSX command failed: {error}"
+    },
+    "unsupported_source": {
+      "message": "{source} is not a supported KEF LSX source."
+    }
+  },
+  "selector": {
+    "standby_time": {
+      "options": {
+        "20": "20 minutes",
+        "60": "60 minutes",
+        "never": "Never"
+      }
+    },
+    "wake_source": {
+      "options": {
+        "aux": "Auxiliary",
+        "bluetooth": "Bluetooth",
+        "opt": "Optical",
+        "wifi": "Wi-Fi"
+      }
+    }
+  },
+  "title": "KEF LSX"
+}

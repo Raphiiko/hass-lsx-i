@@ -1,0 +1,42 @@
+"""Constants for the KEF LSX integration."""
+
+from __future__ import annotations
+
+from homeassistant.const import Platform
+
+DOMAIN = "kef_lsx"
+
+DEFAULT_PORT = 50001
+DEFAULT_NAME = "KEF LSX"
+
+CONF_PREFERRED_WAKE_SOURCE = "preferred_wake_source"
+CONF_MAX_VOLUME = "maximum_volume"
+CONF_VOLUME_STEP = "volume_step"
+CONF_INVERSE_ORIENTATION = "inverse_orientation"
+CONF_STANDBY_TIME = "standby_time"
+
+SOURCE_WIFI = "Wifi"
+SOURCE_BLUETOOTH = "Bluetooth"
+SOURCE_AUX = "Aux"
+SOURCE_OPT = "Opt"
+WAKE_SOURCES = tuple(
+    source.casefold()
+    for source in (SOURCE_WIFI, SOURCE_BLUETOOTH, SOURCE_AUX, SOURCE_OPT)
+)
+
+STANDBY_NEVER = "never"
+STANDBY_20_MINUTES = "20"
+STANDBY_60_MINUTES = "60"
+STANDBY_SELECTOR_VALUES = (
+    STANDBY_NEVER,
+    STANDBY_20_MINUTES,
+    STANDBY_60_MINUTES,
+)
+
+DEFAULT_PREFERRED_WAKE_SOURCE: str | None = None
+DEFAULT_MAX_VOLUME = 0.5
+DEFAULT_VOLUME_STEP = 0.05
+DEFAULT_INVERSE_ORIENTATION = False
+DEFAULT_STANDBY_TIME: int | None = None
+
+PLATFORMS: list[Platform] = [Platform.MEDIA_PLAYER, Platform.SENSOR]

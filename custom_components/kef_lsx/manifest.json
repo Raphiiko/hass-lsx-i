@@ -1,0 +1,13 @@
+{
+  "domain": "kef_lsx",
+  "name": "KEF LSX",
+  "codeowners": ["@Raphiiko"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/Raphiiko/hass-lsx-i#readme",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/Raphiiko/hass-lsx-i/issues",
+  "requirements": [],
+  "version": "0.1.0b3"
+}

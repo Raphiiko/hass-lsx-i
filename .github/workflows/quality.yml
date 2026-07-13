@@ -1,0 +1,29 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "feat/**"
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-type:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v6
+      - name: Install development dependencies
+        run: uv sync --frozen --python 3.14 --extra test --extra dev
+      - name: Ruff lint
+        run: uv run --frozen ruff check .
+      - name: Ruff format
+        run: uv run --frozen ruff format --check .
+      - name: Mypy
+        run: uv run --frozen mypy

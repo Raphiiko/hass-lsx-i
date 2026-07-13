@@ -1,0 +1,75 @@
+[project]
+name = "hass-lsx-i"
+version = "0.1.0b3"
+description = "Home Assistant custom integration for first-generation KEF LSX speakers"
+readme = "README.md"
+requires-python = ">=3.14.2"
+license = "MIT"
+authors = [{ name = "Raphiiko" }]
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+  "pytest==9.0.3",
+  "pytest-asyncio>=1.0,<2",
+  "pytest-cov>=7.1,<8",
+  "pytest-homeassistant-custom-component==0.13.346",
+  "pytest-timeout>=2.4,<3",
+]
+dev = [
+  "mypy>=1.16,<2",
+  "ruff>=0.12,<1",
+]
+
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+addopts = [
+  "--strict-config",
+  "--strict-markers",
+  "--timeout=30",
+  "--cov=custom_components.kef_lsx",
+  "--cov-report=term-missing",
+  "--cov-report=xml",
+  "--cov-fail-under=80",
+]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["custom_components/kef_lsx"]
+
+[tool.coverage.report]
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+  "raise NotImplementedError",
+]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["ASYNC", "B", "E", "F", "I", "PT", "RUF", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["PT011"]
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+exclude = ["tests/"]
+files = ["custom_components/kef_lsx"]
+no_implicit_optional = true
+python_version = "3.14"
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true
