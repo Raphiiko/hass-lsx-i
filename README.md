@@ -1,5 +1,11 @@
 # KEF LSX for Home Assistant
 
+> **Personal-use project:** This is a vibecoded custom integration made to solve
+> one specific problem with one first-generation KEF LSX setup: keeping control
+> available when the legacy local protocol has a transient failure. It is not
+> intended as a general release or supported product. Do not rely on it being
+> thoroughly human-tested or maintained in the future.
+
 KEF LSX is a HACS custom integration for **first-generation KEF LSX** speaker
 pairs. It communicates directly with the speaker over the local legacy TCP
 protocol on port 50001. It does not use a KEF account, the KEF cloud, or an
