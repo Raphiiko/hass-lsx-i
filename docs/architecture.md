@@ -64,9 +64,9 @@ must first complete one bounded, read-only source query.
 
 ## Command semantics
 
-Power and source share register `0x30`. `turn_on` directly sends the preferred
-source's on encoding without a prerequisite GET. `turn_off` uses a safe cached
-source or configured fallback. SET acknowledgement records channel success and
+Power and source share register `0x30`. `turn_on` directly sends the configured
+preferred source, cached last-known source, or `Opt` fallback without a prerequisite
+GET. `turn_off` uses the same safe source selection. SET acknowledgement records channel success and
 the command is verified asynchronously through the same worker.
 
 Volume writes are absolute. Maximum volume is enforced before bytes are queued.

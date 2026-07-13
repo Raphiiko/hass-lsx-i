@@ -78,8 +78,8 @@ HACS is recommended because it manages file updates.
 ## Configuration and options
 
 Setup is entirely through the UI. The config flow performs one short, read-only
-source query; it never wakes or changes the speaker. Connection data contains the
-host and port (50001 by default). Duplicate endpoints are rejected.
+source query; it never wakes or changes the speaker. Setup asks for a friendly
+name plus the host and port (50001 by default). Duplicate endpoints are rejected.
 
 The options flow contains only user-meaningful behavior:
 

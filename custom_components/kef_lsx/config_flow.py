@@ -197,7 +197,7 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle endpoint reconfiguration."""
         entry = self._get_reconfigure_entry()
         if user_input is None:
-            current_name = entry.data.get(CONF_NAME, entry.title)
+            current_name = entry.title
             if current_name == entry.data[CONF_HOST]:
                 current_name = DEFAULT_NAME
             user_input = {
@@ -246,15 +246,14 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     _LOGGER.exception("Unexpected exception validating KEF LSX")
                     errors["base"] = "unknown"
                 else:
-                    data = {CONF_NAME: name, **endpoint}
                     title = self._unique_title(name, entry)
                     if entry is None:
                         await self.async_set_unique_id(str(uuid4()))
-                        return self.async_create_entry(title=title, data=data)
+                        return self.async_create_entry(title=title, data=endpoint)
                     return self.async_update_reload_and_abort(
                         entry,
                         title=title,
-                        data_updates=data,
+                        data_updates=endpoint,
                         reason="reconfigure_successful",
                         reload_even_if_entry_is_unchanged=False,
                     )
@@ -272,14 +271,14 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> str:
         """Return a readable config-entry title with a deterministic suffix."""
         used = {
-            entry.title
+            entry.title.casefold()
             for entry in self._async_current_entries()
             if current is None or entry.entry_id != current.entry_id
         }
-        if requested not in used:
+        if requested.casefold() not in used:
             return requested
         suffix = 2
-        while f"{requested}_{suffix}" in used:
+        while f"{requested}_{suffix}".casefold() in used:
             suffix += 1
         return f"{requested}_{suffix}"
 

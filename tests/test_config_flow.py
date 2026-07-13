@@ -54,7 +54,6 @@ async def test_user_can_create_entry_with_normalized_endpoint(
     assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["title"] == "Desk Speakers"
     assert result["data"] == {
-        CONF_NAME: "Desk Speakers",
         CONF_HOST: "speaker.local",
         CONF_PORT: DEFAULT_PORT,
     }
@@ -132,6 +131,42 @@ async def test_user_flow_rejects_normalized_duplicate_before_probe(
     assert result["type"] is data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "already_configured"
     validate.assert_not_awaited()
+
+
+async def test_user_flow_suffixes_case_insensitive_name_conflicts(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """Friendly-name conflicts receive the next deterministic suffix."""
+    MockConfigEntry(
+        domain=DOMAIN,
+        title="KEF LSX",
+        data={CONF_HOST: "first.local", CONF_PORT: DEFAULT_PORT},
+    ).add_to_hass(hass)
+    MockConfigEntry(
+        domain=DOMAIN,
+        title="KEF LSX_2",
+        data={CONF_HOST: "second.local", CONF_PORT: DEFAULT_PORT},
+    ).add_to_hass(hass)
+
+    with (
+        patch(
+            "custom_components.kef_lsx.config_flow._async_validate_endpoint",
+            new=AsyncMock(),
+        ),
+        patch(
+            "custom_components.kef_lsx.async_setup_entry",
+            new=AsyncMock(return_value=True),
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
+            data={CONF_NAME: "kef lsx", **VALID_ENDPOINT},
+        )
+
+    assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
+    assert result["title"] == "kef lsx_3"
 
 
 async def test_options_flow_stores_user_facing_settings(
@@ -226,7 +261,10 @@ async def test_reconfigure_validates_and_updates_changed_endpoint(
 
     assert result["type"] is data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
-    assert entry.data == changed
+    assert entry.data == {
+        CONF_HOST: "new-speaker.local",
+        CONF_PORT: 50002,
+    }
     assert entry.title == "Studio Speakers"
     validate.assert_awaited_once_with("new-speaker.local", 50002)
     reload_entry.assert_awaited_once_with(entry.entry_id)

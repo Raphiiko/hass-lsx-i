@@ -15,7 +15,7 @@ initial `kef_lsx` prerelease.
   `pytest-homeassistant-custom-component==0.13.346`.
 - Distribution: HACS custom integration with a vendored, HA-independent typed
   client. `manifest.json` has no third-party runtime requirements.
-- Release state: `0.1.0b1` prerelease. No stable tag or hardware-validation
+- Release state: `0.1.0b2` prerelease. No stable tag or hardware-validation
   claim before an approved real-speaker test.
 - DSP and transport controls (play/pause/track) are deferred. The MVP exposes
   power, source, absolute/step volume, and mute only.
@@ -125,10 +125,9 @@ an outage.
 
 ## Direct wake and command accounting
 
-`turn_on` encodes and sends the preferred source SET directly (default `Opt`),
-including configured standby/orientation. No GET precedes it. A cached safe source
-may be used only by commands whose semantics require it; the configured source is
-always available as fallback.
+`turn_on` encodes and sends a source SET directly, including configured standby/
+orientation. No GET precedes it. An optional preferred source overrides the cached
+last-known source; `Opt` is the safe fallback when neither is available.
 
 Command accounting distinguishes submitted, `write_attempted` (set immediately
 before `writer.write`), acknowledged (exact expected ACK), and verified. Queue
@@ -141,8 +140,9 @@ supersede stale generations and always take priority.
 
 ## Home Assistant surface
 
-Config data contains normalized host and port. Options contain preferred wake
-source (`Opt` default), maximum volume (0.5), volume step (0.05), inverse
+Config data contains normalized host and port; the config-entry title is the
+friendly device name. Options contain an optional preferred wake source, maximum
+volume (0.5), volume step (0.05), inverse
 orientation, and standby encoding (`None` default). Poll/retry/timeout/hysteresis
 knobs are intentionally not user-facing.
 
