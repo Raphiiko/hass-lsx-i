@@ -6,7 +6,7 @@ work is inspected and integrated.
 
 | Agent / task | Branch or worktree | Owned files | Dependencies | Status | Verification |
 |---|---|---|---|---|---|
-| Lead / orchestration and integration | `feat/initial-integration` (shared worktree) | cross-cutting integration, ledger, final plan | all workstreams | in progress | integrated every result; full local suite and CI pending final push |
+| Lead / orchestration and integration | `feat/initial-integration` (shared worktree) | cross-cutting integration, ledger, final plan | all workstreams | complete | integrated every result; 122 tests at 83.31% coverage; Ruff, mypy, HACS, hassfest, Linux HA and Windows protocol CI passed |
 | Research 1 / legacy protocol and aiokef audit | shared worktree, strict ownership | `docs/research/legacy-protocol-aiokef.md` | none | complete | agent self-check; lead read full report; `git diff --check` |
 | Research 2 / current HA and HACS architecture | shared worktree, strict ownership | `docs/research/ha-hacs-architecture.md` | none | complete | agent self-check; lead read full report; `git diff --check` |
 | Research 3 / reliability and concurrency design | shared worktree, strict ownership | `docs/research/reliability-concurrency.md` | none | complete | agent self-check; lead read full report; `git diff --check` |
