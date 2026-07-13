@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "feat/**"
+
+permissions:
+  contents: read
+
+jobs:
+  home-assistant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v6
+      - name: Install test dependencies
+        run: uv sync --frozen --python 3.14 --extra test
+      - name: Run tests
+        run: uv run --frozen pytest
+
+  windows-protocol:
+    runs-on: windows-latest
+    env:
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v6
+      - name: Install test dependencies
+        run: uv sync --frozen --python 3.14 --extra test
+      - name: Run portable TCP and protocol tests
+        run: >-
+          uv run --frozen pytest
+          tests/test_fake_lsx.py tests/test_protocol.py tests/test_client.py
+          -o "addopts=--strict-config --strict-markers --timeout=30"
+          -p pytest_asyncio.plugin -p pytest_timeout

@@ -15,10 +15,10 @@ work is inspected and integrated.
 | Research 6 / read-only live HA investigation | shared worktree, strict ownership | `docs/research/live-ha.md` | HA MCP access | complete | 22 read-only calls logged; sensitive scan; lead read full report; no mutations |
 | Architecture reviewer A | shared worktree, strict ownership | `docs/research/architecture-a.md` | research 1-6 | complete | two stalled attempts interrupted; replacement report lead-reviewed; `git diff --check` |
 | Architecture reviewer B / adversarial | shared worktree, strict ownership | `docs/research/architecture-b.md` | research 1-6 and reviewer A | complete | 14 findings lead-reviewed and incorporated into implementation plan |
-| Implementation A / protocol client and tests | shared worktree, strict ownership | protocol/client files and focused tests listed in `docs/implementation-plan.md` | fake server | queued | pending |
-| Implementation B / fake TCP server | shared worktree, strict ownership | fake-server files listed in plan | protocol research | queued | pending |
-| Implementation C / HA setup and config | shared worktree, strict ownership | setup/config files listed in plan | controller contract | queued | pending |
+| Implementation A / protocol client and tests | shared worktree, strict ownership | protocol/client files and focused tests listed in `docs/implementation-plan.md` | fake server | in progress | TDD in progress |
+| Implementation B / fake TCP server | shared worktree, strict ownership | fake-server files listed in plan | protocol research | complete | lead found/fixed dropped-reply tracking; 17 portable TCP tests passed; Ruff clean |
+| Implementation C / HA setup and config | shared worktree, strict ownership | setup/config files listed in plan | controller contract | complete | 11 HA tests passed under WSL; Ruff/format/compile/JSON clean; lead contract review |
 | Implementation D / runtime and entities | shared worktree, strict ownership | runtime/entity files listed in plan | A, B, C | queued | pending |
-| Implementation E / packaging, CI, docs | shared worktree, strict ownership | packaging/docs files listed in plan | approved plan; D feature list | queued | pending |
+| Implementation E / packaging, CI, docs | shared worktree, strict ownership | packaging/docs files listed in plan plus `uv.lock` | approved plan; D feature list | initial pass complete | Python 3.14.2 lock resolved; TOML/JSON/YAML/diff/sensitive scans; lead content review; final feature matrix pending D |
 
 Final-review rows will be added after implementation.
