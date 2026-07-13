@@ -70,4 +70,3 @@ Include:
 
 Do not enable debug logging indefinitely; the speaker and recorder are both
 sensitive to unnecessary traffic/noise.
-

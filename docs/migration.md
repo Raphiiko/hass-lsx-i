@@ -65,4 +65,3 @@ After explicit approval and only while the old integration remains stopped:
 5. Confirm the built-in entity and automations are restored.
 
 Do not leave the custom config entry active while restoring the built-in owner.
-

@@ -106,4 +106,3 @@ offer a concrete user action beyond the troubleshooting guidance.
 
 These can be reconsidered only with protocol evidence, fake-server coverage, and
 real-hardware validation without weakening the one-owner invariant.
-

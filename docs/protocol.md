@@ -73,4 +73,3 @@ Real hardware validation is required for trailer semantics, split-frame behavior
 on the speaker, unsolicited responses, firmware-specific standby behavior, the
 response-48 anomaly, and all transport/DSP commands. These uncertainties block a
 stable release claim but do not require speculative behavior in the MVP.
-
