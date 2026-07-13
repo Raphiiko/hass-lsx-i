@@ -201,12 +201,13 @@ Recommended internal defaults (not user-facing options):
 | Setting | Default | Rationale |
 |---|---:|---|
 | Routine poll interval | 30 s | Matches existing operational expectations while limiting traffic. |
-| Connect timeout | 1.0 s | A fixed-IP LAN target should fail quickly. |
-| Whole exchange attempt | 2.5 s | Absolute deadline covering connect if needed, write/drain, framing, and response. |
+| Connect timeout | 2.0 s | The LSX listener can accept slowly while recycling a prior connection. |
+| Whole exchange I/O attempt | 3.25 s | Absolute deadline covering connect if needed, write/drain, framing, and response. |
 | Close/reset wait | 0.25 s | Cleanup cannot wedge the worker or unload. |
-| Reset settle delay before retry | 0.10 s | Gives the fragile server a scheduling turn without a long nested backoff. |
+| Listener recycle delay | 0.20 s | Gives the single-connection LSX listener time to accept the next operation. |
+| Retry gap after failure | 0.30 s | Avoids landing both control attempts in one slow-accept window. |
 | Routine/verification attempts per work item | 1 | Prevents a failed poll consuming the interval. |
-| Idempotent control attempts | 2 total | One reset-before-retry; worst exchange/reset time about 5.35 s. |
+| Idempotent control attempts | 2 total | One reset-before-retry; worst case is about 7.7 s. |
 | Control absolute deadline from submission | 8 s | Includes queue wait and both attempts; expired controls are not sent late. |
 | Verification schedule | +1 s, +2 s, +4 s | Three single-attempt reads, cumulative completion target about 7 s plus bounded exchange time. |
 | Control queue capacity | 16 | Handles short UI/automation bursts while bounding memory and stale actions. |
@@ -335,7 +336,7 @@ through reset in `finally`.
 | Threat | Failure mode | Required mitigation |
 |---|---|---|
 | Overlapping poll/control | Two coroutines consume each other's reply. | Worker is sole client owner; no public raw client reference. |
-| Poll backlog | Slow 30-second work accumulates indefinitely. | One coalesced poll, one attempt, 2.5-second deadline. |
+| Poll backlog | Slow 30-second work accumulates indefinitely. | One coalesced poll and one bounded 3.25-second I/O attempt. |
 | Command starvation | A recurring poll repeatedly acquires the connection first. | Controls selected before pending poll; current poll is bounded and cannot retry. |
 | Deadlock on queue | Producer awaits queue capacity while holding state/lock. | Bounded non-blocking submit; no scheduler lock is held across `await`. |
 | Self-deadlock | Worker awaits the future only it can complete. | Worker executes jobs and only producers await result futures. |
@@ -428,4 +429,3 @@ through reset in `finally`.
 - [Python: asyncio queues](https://docs.python.org/3/library/asyncio-queue.html)
 - [Python: asyncio streams](https://docs.python.org/3/library/asyncio-stream.html)
 - [Python: asyncio tasks, cancellation, and timeouts](https://docs.python.org/3/library/asyncio-task.html)
-

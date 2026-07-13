@@ -43,6 +43,11 @@ sending an unsafe value. Absolute volume set remains capped by maximum volume.
 
 ## Frequent timeouts or poll-overrun messages
 
+The client gives the LSX up to two seconds to accept a connection, waits 200 ms
+after a completed exchange for its single listener to recycle, and gives idempotent
+controls one retry within an eight-second deadline. Do not add automation-side
+retries; command scheduling and retry ownership remain inside the integration.
+
 - Verify there is exactly one integration/application using port 50001.
 - Do not lower polling intervals or add automation retries.
 - Check speaker Wi-Fi/routing separately; association alone does not prove the

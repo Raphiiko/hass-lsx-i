@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from unittest.mock import patch
 
 import pytest
 from fake_lsx import AutoReply, DropReply, GateThen, Reject, Reply, Step, get_reply
@@ -33,6 +34,7 @@ def _runtime(server, *, clock=None, verification_delays=(100,)) -> KefLsxRuntime
         connect_timeout=0.05,
         response_timeout=0.05,
         close_timeout=0.05,
+        reconnect_delay=0,
     )
     runtime = KefLsxRuntime(
         server.host,
@@ -89,6 +91,52 @@ async def test_direct_wake_is_attempted_after_failed_poll(fake_lsx_server) -> No
     assert result.last_command.write_attempted
     assert result.last_command.acknowledged
     await runtime.async_close()
+    server.assert_clean()
+
+
+async def test_control_retries_after_a_slow_listener_recycle(fake_lsx_server) -> None:
+    """A delayed second accept fits the control budget and still turns off."""
+    server = fake_lsx_server
+    server.queue(Step(GET_SOURCE), Step(OFF_OPT))
+    client = LsxClient(
+        server.host,
+        server.port,
+        connect_timeout=0.05,
+        response_timeout=0.05,
+        close_timeout=0.05,
+    )
+    runtime = KefLsxRuntime(
+        server.host,
+        server.port,
+        client=client,
+        timing=RuntimeTiming(
+            control_deadline=1.0,
+            verification_delays=(100,),
+            stale_after=45,
+            unavailable_after=120,
+            failure_threshold=4,
+        ),
+    )
+    runtime.snapshot = RuntimeSnapshot(speaker=SpeakerState(volume=20, muted=False))
+    await runtime.async_start()
+    real_open_connection = asyncio.open_connection
+    available_at = asyncio.get_running_loop().time() + 0.24
+
+    async def delayed_open_connection(*args: object, **kwargs: object) -> object:
+        remaining = available_at - asyncio.get_running_loop().time()
+        if remaining > 0:
+            await asyncio.sleep(remaining)
+        return await real_open_connection(*args, **kwargs)
+
+    try:
+        with patch("asyncio.open_connection", new=delayed_open_connection):
+            result = await runtime.async_turn_off()
+    finally:
+        await runtime.async_close()
+
+    assert result.last_command is not None
+    assert result.last_command.acknowledged
+    assert [command.raw for command in server.commands] == [GET_SOURCE, OFF_OPT]
     server.assert_clean()
 
 

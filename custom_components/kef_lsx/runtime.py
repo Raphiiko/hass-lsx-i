@@ -46,7 +46,7 @@ class RuntimeTiming:
     """Explicit scheduling and health budgets, injectable for tests."""
 
     control_deadline: float = 8.0
-    retry_delay: float = 0.1
+    retry_delay: float = 0.3
     verification_delays: tuple[float, ...] = (1.0, 2.0, 4.0)
     stale_after: float = 45.0
     unavailable_after: float = 120.0

@@ -44,17 +44,26 @@ class LsxClient:
         host: str,
         port: int,
         *,
-        connect_timeout: float = 1.0,
-        response_timeout: float = 1.5,
-        close_timeout: float = 0.5,
+        connect_timeout: float = 2.0,
+        response_timeout: float = 1.25,
+        close_timeout: float = 0.25,
+        reconnect_delay: float = 0.2,
     ) -> None:
-        if connect_timeout <= 0 or response_timeout <= 0 or close_timeout <= 0:
-            raise ValueError("Timeout values must be positive")
+        if (
+            connect_timeout <= 0
+            or response_timeout <= 0
+            or close_timeout <= 0
+            or reconnect_delay < 0
+        ):
+            raise ValueError(
+                "Timeout values must be positive and reconnect delay non-negative"
+            )
         self.host = host
         self.port = port
         self._connect_timeout = connect_timeout
         self._response_timeout = response_timeout
         self._close_timeout = close_timeout
+        self._reconnect_delay = reconnect_delay
         self._exchange_lock = asyncio.Lock()
         self._active_writer: asyncio.StreamWriter | None = None
         self._closed = False
@@ -233,9 +242,11 @@ class LsxClient:
                 if writer is not None:
                     if self._active_writer is writer:
                         self._active_writer = None
-                    await self._async_close_writer(writer)
+                    await self._async_close_writer(writer, before_reconnect=True)
 
-    async def _async_close_writer(self, writer: asyncio.StreamWriter) -> None:
+    async def _async_close_writer(
+        self, writer: asyncio.StreamWriter, *, before_reconnect: bool = False
+    ) -> None:
         """Close a stream under a small independent cleanup budget."""
         writer.close()
         try:
@@ -245,5 +256,7 @@ class LsxClient:
             writer.transport.abort()
         except ConnectionError, OSError:
             pass
-        # Give the peer handler one scheduling turn before another connection.
-        await asyncio.sleep(0)
+        if before_reconnect and self._reconnect_delay:
+            # The LSX accepts one control connection at a time and can take a
+            # measurable interval to recycle its listener after close.
+            await asyncio.sleep(self._reconnect_delay)

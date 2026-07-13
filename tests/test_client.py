@@ -235,6 +235,38 @@ async def test_connect_timeout_has_its_own_typed_budget() -> None:
     await client.async_close()
 
 
+async def test_default_client_budget_allows_a_slow_lsx_accept() -> None:
+    """The production budget tolerates a listener that accepts after one second."""
+    async with FakeLsxServer([Step(b"G0\x80")]) as speaker:
+        real_open_connection = asyncio.open_connection
+
+        async def slow_open_connection(*args: object, **kwargs: object) -> object:
+            await asyncio.sleep(1.1)
+            return await real_open_connection(*args, **kwargs)
+
+        client = LsxClient(speaker.host, speaker.port)
+        try:
+            with patch("asyncio.open_connection", new=slow_open_connection):
+                assert (await client.async_get_source()).source is Source.OPT
+        finally:
+            await client.async_close()
+
+    speaker.assert_clean()
+
+
+async def test_client_waits_before_reopening_after_close() -> None:
+    """A completed exchange gives the single-connection listener time to recycle."""
+    async with FakeLsxServer([Step(b"G0\x80"), Step(b"G%\x80")]) as speaker:
+        client = LsxClient(speaker.host, speaker.port, reconnect_delay=0.05)
+        await client.async_get_source()
+        await client.async_get_volume()
+        await client.async_close()
+
+    accepted = [event for event in speaker.transcript if event.event == "accepted"]
+    assert accepted[1].loop_time - accepted[0].loop_time >= 0.04
+    speaker.assert_clean()
+
+
 async def test_defensive_serialization_prevents_concurrent_exchanges() -> None:
     """Even accidental direct concurrent calls cannot overlap TCP exchanges."""
     gate = asyncio.Event()

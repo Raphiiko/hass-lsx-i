@@ -15,7 +15,7 @@ initial `kef_lsx` prerelease.
   `pytest-homeassistant-custom-component==0.13.346`.
 - Distribution: HACS custom integration with a vendored, HA-independent typed
   client. `manifest.json` has no third-party runtime requirements.
-- Release state: `0.1.0b2` prerelease. No stable tag or hardware-validation
+- Release state: `0.1.0b3` prerelease. No stable tag or hardware-validation
   claim before an approved real-speaker test.
 - DSP and transport controls (play/pause/track) are deferred. The MVP exposes
   power, source, absolute/step volume, and mute only.
@@ -40,11 +40,13 @@ timeout, connection loss/reset/EOF, malformed response, rejected command, busy
 queue, ambiguous non-idempotent result, and closed runtime. Cancellation is not
 translated into a communication failure.
 
-One protocol exchange has an absolute budget covering connect, write/drain,
-read/framing, and close. Initial defaults are 1.0 seconds to connect, 1.5 seconds
-for response, 0.5 seconds for bounded close, at most 3 seconds for a poll, and at
-most 6 seconds/two attempts for an idempotent control. Retry is owned only by the
-worker and always follows a completed reset/close.
+One protocol exchange has an absolute I/O budget covering connect, write/drain,
+and read/framing. Initial defaults are 2.0 seconds to connect, 1.25 seconds for
+response, 0.25 seconds for bounded close, and a 0.20-second listener-recycle delay
+before another operation-scoped connection. A poll takes at most about 3.7 seconds;
+an idempotent control gets two attempts with a 0.30-second retry gap within its
+eight-second absolute deadline. Retry is owned only by the worker and always follows
+a completed reset/close.
 
 ## Connection ownership and scheduler
 
