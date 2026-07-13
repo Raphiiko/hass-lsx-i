@@ -1,6 +1,6 @@
 [project]
 name = "hass-lsx-i"
-version = "0.1.0b1"
+version = "0.1.0b2"
 description = "Home Assistant custom integration for first-generation KEF LSX speakers"
 readme = "README.md"
 requires-python = ">=3.14.2"

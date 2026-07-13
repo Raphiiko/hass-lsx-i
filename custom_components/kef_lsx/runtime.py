@@ -74,7 +74,7 @@ class KefLsxRuntime:
         host: str,
         port: int = DEFAULT_PORT,
         *,
-        preferred_wake_source: Source | str = DEFAULT_PREFERRED_WAKE_SOURCE,
+        preferred_wake_source: Source | str | None = DEFAULT_PREFERRED_WAKE_SOURCE,
         maximum_volume: float = DEFAULT_MAX_VOLUME,
         volume_step: float = DEFAULT_VOLUME_STEP,
         inverse_orientation: bool = DEFAULT_INVERSE_ORIENTATION,
@@ -86,7 +86,11 @@ class KefLsxRuntime:
     ) -> None:
         self.host = host
         self.port = port
-        self.preferred_wake_source = coerce_source(preferred_wake_source)
+        self.preferred_wake_source = (
+            coerce_source(preferred_wake_source)
+            if preferred_wake_source is not None
+            else None
+        )
         self.maximum_volume = max(1, min(100, round(maximum_volume * 100)))
         self.volume_step = max(1, round(volume_step * 100))
         self.inverse_orientation = inverse_orientation
@@ -434,16 +438,18 @@ class KefLsxRuntime:
     async def _execute_control(self, job: _Control) -> None:
         speaker = self.snapshot.speaker
         if job.kind == "turn_on":
+            job.value = self._source_for_power_command()
             await self._client.async_set_source(
-                self.preferred_wake_source,
+                job.value,
                 standby=self.standby_time,
                 inverse=self.inverse_orientation,
                 power_on=True,
                 deadline=self._client_deadline(job),
             )
         elif job.kind == "turn_off":
+            job.value = self._source_for_power_command()
             await self._client.async_set_source(
-                speaker.source or self.preferred_wake_source,
+                job.value,
                 standby=self.standby_time,
                 inverse=self.inverse_orientation,
                 power_on=False,
@@ -474,6 +480,10 @@ class KefLsxRuntime:
                 volume, muted=muted, deadline=self._client_deadline(job)
             )
 
+    def _source_for_power_command(self) -> Source:
+        """Choose an explicit override, cached source, or safe optical fallback."""
+        return self.preferred_wake_source or self.snapshot.speaker.source or Source.OPT
+
     def _client_deadline(self, job: _Control) -> float:
         """Translate the injectable scheduler clock into the event-loop clock."""
         remaining = max(0.0, job.deadline - self._now())
@@ -488,7 +498,7 @@ class KefLsxRuntime:
         """Return the state expected if a control write took effect."""
         state = self.snapshot.speaker
         if job.kind == "turn_on":
-            state = replace(state, power_on=True, source=self.preferred_wake_source)
+            state = replace(state, power_on=True, source=job.value)
         elif job.kind == "turn_off":
             state = replace(state, power_on=False)
         elif job.kind == "select_source":

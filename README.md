@@ -83,8 +83,8 @@ host and port (50001 by default). Duplicate endpoints are rejected.
 
 The options flow contains only user-meaningful behavior:
 
-- **Preferred wake source** — defaults to `Opt`; used to construct a direct wake
-  command even when the last poll failed.
+- **Preferred wake source** — optional. When set, it overrides the cached source;
+  otherwise the last known source is used, with `Opt` as the fallback if none is known.
 - **Maximum volume** — caps volume commands; default 50%.
 - **Volume step** — amount used by volume up/down; default 5%.
 - **Inverse orientation** — swaps L/R speaker orientation in the encoded source.

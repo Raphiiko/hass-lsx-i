@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -13,7 +13,6 @@ from custom_components.kef_lsx.config_flow import CannotConnect
 from custom_components.kef_lsx.const import (
     CONF_INVERSE_ORIENTATION,
     CONF_MAX_VOLUME,
-    CONF_PREFERRED_WAKE_SOURCE,
     CONF_STANDBY_TIME,
     CONF_VOLUME_STEP,
     DEFAULT_PORT,
@@ -21,6 +20,7 @@ from custom_components.kef_lsx.const import (
 )
 
 VALID_ENDPOINT = {CONF_HOST: "speaker.local", CONF_PORT: DEFAULT_PORT}
+VALID_SETUP = {CONF_NAME: "Desk Speakers", **VALID_ENDPOINT}
 
 
 async def test_user_can_create_entry_with_normalized_endpoint(
@@ -43,13 +43,18 @@ async def test_user_can_create_entry_with_normalized_endpoint(
         )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={CONF_HOST: "  SPEAKER.Local. ", CONF_PORT: DEFAULT_PORT},
+            user_input={
+                CONF_NAME: "Desk Speakers",
+                CONF_HOST: "  SPEAKER.Local. ",
+                CONF_PORT: DEFAULT_PORT,
+            },
         )
         await hass.async_block_till_done()
 
     assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
-    assert result["title"] == "speaker.local"
+    assert result["title"] == "Desk Speakers"
     assert result["data"] == {
+        CONF_NAME: "Desk Speakers",
         CONF_HOST: "speaker.local",
         CONF_PORT: DEFAULT_PORT,
     }
@@ -71,7 +76,11 @@ async def test_user_flow_rejects_invalid_host_without_network_access(
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={"source": config_entries.SOURCE_USER},
-            data={CONF_HOST: "https://speaker.local", CONF_PORT: DEFAULT_PORT},
+            data={
+                CONF_NAME: "KEF LSX",
+                CONF_HOST: "https://speaker.local",
+                CONF_PORT: DEFAULT_PORT,
+            },
         )
 
     assert result["type"] is data_entry_flow.FlowResultType.FORM
@@ -91,7 +100,7 @@ async def test_user_flow_reports_connection_failure(
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={"source": config_entries.SOURCE_USER},
-            data=VALID_ENDPOINT,
+            data=VALID_SETUP,
         )
 
     assert result["type"] is data_entry_flow.FlowResultType.FORM
@@ -113,7 +122,11 @@ async def test_user_flow_rejects_normalized_duplicate_before_probe(
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={"source": config_entries.SOURCE_USER},
-            data={CONF_HOST: "SPEAKER.LOCAL.", CONF_PORT: DEFAULT_PORT},
+            data={
+                CONF_NAME: "Another name",
+                CONF_HOST: "SPEAKER.LOCAL.",
+                CONF_PORT: DEFAULT_PORT,
+            },
         )
 
     assert result["type"] is data_entry_flow.FlowResultType.ABORT
@@ -133,9 +146,8 @@ async def test_options_flow_stores_user_facing_settings(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            CONF_PREFERRED_WAKE_SOURCE: "opt",
-            CONF_MAX_VOLUME: 0.4,
-            CONF_VOLUME_STEP: 0.04,
+            CONF_MAX_VOLUME: 40,
+            CONF_VOLUME_STEP: 4,
             CONF_INVERSE_ORIENTATION: True,
             CONF_STANDBY_TIME: "60",
         },
@@ -143,7 +155,6 @@ async def test_options_flow_stores_user_facing_settings(
 
     assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
     assert entry.options == {
-        CONF_PREFERRED_WAKE_SOURCE: "opt",
         CONF_MAX_VOLUME: 0.4,
         CONF_VOLUME_STEP: 0.04,
         CONF_INVERSE_ORIENTATION: True,
@@ -171,7 +182,7 @@ async def test_reconfigure_skips_probe_for_unchanged_endpoint(
             },
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input=VALID_ENDPOINT
+            result["flow_id"], user_input={CONF_NAME: "KEF LSX", **VALID_ENDPOINT}
         )
 
     assert result["type"] is data_entry_flow.FlowResultType.ABORT
@@ -186,7 +197,11 @@ async def test_reconfigure_validates_and_updates_changed_endpoint(
     """A changed endpoint is validated before replacing config data."""
     entry = MockConfigEntry(domain=DOMAIN, title="speaker.local", data=VALID_ENDPOINT)
     entry.add_to_hass(hass)
-    changed = {CONF_HOST: "new-speaker.local", CONF_PORT: 50002}
+    changed = {
+        CONF_NAME: "Studio Speakers",
+        CONF_HOST: "new-speaker.local",
+        CONF_PORT: 50002,
+    }
 
     with (
         patch(
@@ -212,6 +227,6 @@ async def test_reconfigure_validates_and_updates_changed_endpoint(
     assert result["type"] is data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     assert entry.data == changed
-    assert entry.title == "new-speaker.local"
+    assert entry.title == "Studio Speakers"
     validate.assert_awaited_once_with("new-speaker.local", 50002)
     reload_entry.assert_awaited_once_with(entry.entry_id)

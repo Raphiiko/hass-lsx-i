@@ -1,6 +1,6 @@
 # Release process
 
-The initial version is `0.1.0b1`. It is a prerelease and must not be described as
+The current version is `0.1.0b2`. It is a prerelease and must not be described as
 hardware-verified or stable.
 
 ## Versioning

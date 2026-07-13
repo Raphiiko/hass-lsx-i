@@ -51,6 +51,23 @@ def _runtime(server, *, clock=None, verification_delays=(100,)) -> KefLsxRuntime
     return runtime
 
 
+async def test_optional_wake_source_uses_cached_source(fake_lsx_server) -> None:
+    """Without an override, wake directly uses the last known source."""
+    server = fake_lsx_server
+    server.state.source = "Aux"
+    wake_aux = bytes((0x53, 0x30, 0x81, 0x2A))
+    server.queue(Step(GET_SOURCE), Step(wake_aux))
+    runtime = _runtime(server)
+    runtime.preferred_wake_source = None
+
+    await runtime.async_start()
+    await runtime.async_turn_on()
+
+    assert [command.raw for command in server.commands] == [GET_SOURCE, wake_aux]
+    await runtime.async_close()
+    server.assert_clean()
+
+
 async def test_direct_wake_is_attempted_after_failed_poll(fake_lsx_server) -> None:
     """A failed background read cannot gate the direct optical wake SET."""
     server = fake_lsx_server
@@ -235,6 +252,7 @@ async def test_turn_on_uses_preferred_source_despite_cached_source(
     server.state.source = "Aux"
     server.queue(Step(GET_SOURCE), Step(WAKE_OPT))
     runtime = _runtime(server)
+    runtime.preferred_wake_source = Source.OPT
     await runtime.async_start()
     assert runtime.snapshot.speaker.source is not None
     await runtime.async_turn_on()

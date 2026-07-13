@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, PERCENTAGE
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
@@ -24,8 +24,8 @@ from .const import (
     CONF_VOLUME_STEP,
     DEFAULT_INVERSE_ORIENTATION,
     DEFAULT_MAX_VOLUME,
+    DEFAULT_NAME,
     DEFAULT_PORT,
-    DEFAULT_PREFERRED_WAKE_SOURCE,
     DEFAULT_STANDBY_TIME,
     DEFAULT_VOLUME_STEP,
     DOMAIN,
@@ -89,6 +89,7 @@ def _endpoint_schema() -> vol.Schema:
     """Return the endpoint input schema."""
     return vol.Schema(
         {
+            vol.Required(CONF_NAME, default=DEFAULT_NAME): cv.string,
             vol.Required(CONF_HOST): cv.string,
             vol.Required(CONF_PORT, default=DEFAULT_PORT): cv.port,
         }
@@ -113,11 +114,11 @@ def _options_schema(options: dict[str, Any]) -> vol.Schema:
     """Return the options input schema."""
     return vol.Schema(
         {
-            vol.Required(
+            vol.Optional(
                 CONF_PREFERRED_WAKE_SOURCE,
-                default=options.get(
-                    CONF_PREFERRED_WAKE_SOURCE, DEFAULT_PREFERRED_WAKE_SOURCE
-                ),
+                description={
+                    "suggested_value": options.get(CONF_PREFERRED_WAKE_SOURCE)
+                },
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=list(WAKE_SOURCES),
@@ -127,23 +128,25 @@ def _options_schema(options: dict[str, Any]) -> vol.Schema:
             ),
             vol.Required(
                 CONF_MAX_VOLUME,
-                default=options.get(CONF_MAX_VOLUME, DEFAULT_MAX_VOLUME),
+                default=round(options.get(CONF_MAX_VOLUME, DEFAULT_MAX_VOLUME) * 100),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0.01,
-                    max=1.0,
-                    step=0.01,
+                    min=1,
+                    max=100,
+                    step=1,
+                    unit_of_measurement=PERCENTAGE,
                     mode=selector.NumberSelectorMode.SLIDER,
                 )
             ),
             vol.Required(
                 CONF_VOLUME_STEP,
-                default=options.get(CONF_VOLUME_STEP, DEFAULT_VOLUME_STEP),
+                default=round(options.get(CONF_VOLUME_STEP, DEFAULT_VOLUME_STEP) * 100),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0.01,
-                    max=0.25,
-                    step=0.01,
+                    min=1,
+                    max=25,
+                    step=1,
+                    unit_of_measurement=PERCENTAGE,
                     mode=selector.NumberSelectorMode.SLIDER,
                 )
             ),
@@ -194,7 +197,11 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle endpoint reconfiguration."""
         entry = self._get_reconfigure_entry()
         if user_input is None:
+            current_name = entry.data.get(CONF_NAME, entry.title)
+            if current_name == entry.data[CONF_HOST]:
+                current_name = DEFAULT_NAME
             user_input = {
+                CONF_NAME: current_name,
                 CONF_HOST: entry.data[CONF_HOST],
                 CONF_PORT: entry.data.get(CONF_PORT, DEFAULT_PORT),
             }
@@ -220,6 +227,7 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except InvalidHost:
                 errors["base"] = "invalid_host"
             else:
+                name = user_input[CONF_NAME].strip() or DEFAULT_NAME
                 endpoint = {
                     CONF_HOST: host,
                     CONF_PORT: user_input[CONF_PORT],
@@ -238,13 +246,15 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     _LOGGER.exception("Unexpected exception validating KEF LSX")
                     errors["base"] = "unknown"
                 else:
+                    data = {CONF_NAME: name, **endpoint}
+                    title = self._unique_title(name, entry)
                     if entry is None:
                         await self.async_set_unique_id(str(uuid4()))
-                        return self.async_create_entry(title=host, data=endpoint)
+                        return self.async_create_entry(title=title, data=data)
                     return self.async_update_reload_and_abort(
                         entry,
-                        title=host,
-                        data_updates=endpoint,
+                        title=title,
+                        data_updates=data,
                         reason="reconfigure_successful",
                         reload_even_if_entry_is_unchanged=False,
                     )
@@ -257,6 +267,22 @@ class KefLsxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    def _unique_title(
+        self, requested: str, current: config_entries.ConfigEntry | None
+    ) -> str:
+        """Return a readable config-entry title with a deterministic suffix."""
+        used = {
+            entry.title
+            for entry in self._async_current_entries()
+            if current is None or entry.entry_id != current.entry_id
+        }
+        if requested not in used:
+            return requested
+        suffix = 2
+        while f"{requested}_{suffix}" in used:
+            suffix += 1
+        return f"{requested}_{suffix}"
+
 
 class KefLsxOptionsFlow(config_entries.OptionsFlow):
     """Handle useful KEF LSX options."""
@@ -267,6 +293,10 @@ class KefLsxOptionsFlow(config_entries.OptionsFlow):
         """Manage KEF LSX options."""
         if user_input is not None:
             options = dict(user_input)
+            if not options.get(CONF_PREFERRED_WAKE_SOURCE):
+                options.pop(CONF_PREFERRED_WAKE_SOURCE, None)
+            options[CONF_MAX_VOLUME] = options[CONF_MAX_VOLUME] / 100
+            options[CONF_VOLUME_STEP] = options[CONF_VOLUME_STEP] / 100
             options[CONF_STANDBY_TIME] = _standby_from_selector(
                 options[CONF_STANDBY_TIME]
             )

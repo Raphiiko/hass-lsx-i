@@ -100,7 +100,7 @@ class KefLsxSensor(KefLsxEntity, SensorEntity):
             case "command":
                 result = snapshot.last_command
                 if result is None:
-                    return None
+                    return "idle"
                 return (
                     "acknowledged" if result.acknowledged else result.error or "pending"
                 )
