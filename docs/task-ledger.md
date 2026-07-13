@@ -13,7 +13,12 @@ work is inspected and integrated.
 | Research 4 / fake speaker and test design | shared worktree, strict ownership | `docs/research/testing-fake-speaker.md` | wave 1 context allowed, no file dependency | complete | agent self-check; lead read full report; `git diff --check` |
 | Research 5 / competing implementations | shared worktree, strict ownership | `docs/research/competing-implementations.md` | none | complete | agent self-check; lead read full report; `git diff --check` |
 | Research 6 / read-only live HA investigation | shared worktree, strict ownership | `docs/research/live-ha.md` | HA MCP access | complete | 22 read-only calls logged; sensitive scan; lead read full report; no mutations |
-| Architecture reviewer A | shared worktree, strict ownership | `docs/research/architecture-a.md` | research 1-6 | in progress | pending |
-| Architecture reviewer B / adversarial | shared worktree, strict ownership | `docs/research/architecture-b.md` | research 1-6 and reviewer A | queued | pending |
+| Architecture reviewer A | shared worktree, strict ownership | `docs/research/architecture-a.md` | research 1-6 | complete | two stalled attempts interrupted; replacement report lead-reviewed; `git diff --check` |
+| Architecture reviewer B / adversarial | shared worktree, strict ownership | `docs/research/architecture-b.md` | research 1-6 and reviewer A | complete | 14 findings lead-reviewed and incorporated into implementation plan |
+| Implementation A / protocol client and tests | shared worktree, strict ownership | protocol/client files and focused tests listed in `docs/implementation-plan.md` | fake server | queued | pending |
+| Implementation B / fake TCP server | shared worktree, strict ownership | fake-server files listed in plan | protocol research | queued | pending |
+| Implementation C / HA setup and config | shared worktree, strict ownership | setup/config files listed in plan | controller contract | queued | pending |
+| Implementation D / runtime and entities | shared worktree, strict ownership | runtime/entity files listed in plan | A, B, C | queued | pending |
+| Implementation E / packaging, CI, docs | shared worktree, strict ownership | packaging/docs files listed in plan | approved plan; D feature list | queued | pending |
 
-Implementation and final-review rows will be added after architecture approval.
+Final-review rows will be added after implementation.
